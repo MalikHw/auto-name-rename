@@ -3,43 +3,54 @@
 
 using namespace geode::prelude;
 
-class $modify(EditorUI) {
+class $modify(AutoRenameEditorUI, EditorUI) {
     struct Fields {
         bool m_isSavingAndExiting = false;
         CCObject* m_sender = nullptr;
+        bool m_hasShownPopup = false;
     };
 
     void onExitEditor(CCObject* sender) {
-        checkAndRename(false, sender);
+        if (!m_fields->m_hasShownPopup) {
+            checkAndRename(false, sender);
+        } else {
+            m_fields->m_hasShownPopup = false;
+            AutoRenameEditorUI::onExitEditor(sender);
+        }
     }
 
     void onSaveAndExit(CCObject* sender) {
-        checkAndRename(true, sender);
+        if (!m_fields->m_hasShownPopup) {
+            checkAndRename(true, sender);
+        } else {
+            m_fields->m_hasShownPopup = false;
+            AutoRenameEditorUI::onSaveAndExit(sender);
+        }
     }
 
     void checkAndRename(bool saveAndExit, CCObject* sender) {
         auto level = this->m_editorLayer->m_level;
         if (!level) {
             if (saveAndExit) {
-                EditorUI::onSaveAndExit(sender);
+                AutoRenameEditorUI::onSaveAndExit(sender);
             } else {
-                EditorUI::onExitEditor(sender);
+                AutoRenameEditorUI::onExitEditor(sender);
             }
             return;
         }
 
         // the checks
-        auto levelName = level->m_levelName;
-        if (!levelName.starts_with("unnamed") || (level->m_songID == 0 && level->m_audioTrack == 1)) {
+        std::string levelName = std::string(level->m_levelName);
+        if (!(levelName.find("unnamed") == 0) || (level->m_songID == 0 && level->m_audioTrack == 1)) {
             if (saveAndExit) {
-                EditorUI::onSaveAndExit(sender);
+                AutoRenameEditorUI::onSaveAndExit(sender);
             } else {
-                EditorUI::onExitEditor(sender);
+                AutoRenameEditorUI::onExitEditor(sender);
             }
             return;
         }
 
-        auto songName = level->getSongName();
+        std::string songName = std::string(level->getSongName());
 
         // fuck special chars
         std::string cleanedName;
@@ -57,25 +68,25 @@ class $modify(EditorUI) {
 
         if (cleanedName.empty()) {
             if (saveAndExit) {
-                EditorUI::onSaveAndExit(sender);
+                AutoRenameEditorUI::onSaveAndExit(sender);
             } else {
-                EditorUI::onExitEditor(sender);
+                AutoRenameEditorUI::onExitEditor(sender);
             }
             return;
         }
 
         m_fields->m_isSavingAndExiting = saveAndExit;
         m_fields->m_sender = sender;
+        m_fields->m_hasShownPopup = true;
 
         // popup
-        createQuickPopup("Level Name Suggestion", fmt::format("Do you want to rename the level to \"{}\"?", cleanedName), "No", "Yes", [this, level, cleanedName](auto, bool btn2) {
                 if (btn2) {
                     level->m_levelName = cleanedName;
                 }
                 if (m_fields->m_isSavingAndExiting) {
-                    EditorUI::onSaveAndExit(m_fields->m_sender);
+                    AutoRenameEditorUI::onSaveAndExit(m_fields->m_sender);
                 } else {
-                    EditorUI::onExitEditor(m_fields->m_sender);
+                    AutoRenameEditorUI::onExitEditor(m_fields->m_sender);
                 }
             }
         );
