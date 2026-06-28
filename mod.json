@@ -7,14 +7,13 @@
         "ios": "2.2081"
     },
     "version": "1.0.0",
-    "id": "MalikHw.auto-name-rename",
-    "name": "auto-name-rename",
-    "developer": "MalikHw",
-    "description": "desc.",
-    "tags": ["yes", "yeah"],
+    "id": "malikhw47.auto-name-rename",
+    "name": "Auto name rename",
+    "developer": "MalikHw47",
+    "description": "Renames a new level to the song based on it",
+    "tags": ["editor", "enhancement"],
     "links": {
         "source": "https://github.com/MalikHw/auto-name-rename",
         "community": "https://discord.gg/G9bZ92eg2n"
-    },
-    "settings": {}
+    }
 }
